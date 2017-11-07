@@ -34,6 +34,7 @@ struct {
     int ta;
     char ps[PS_LENGTH];
     char rt[RT_LENGTH];
+    int rt_toggle;
 } rds_params = { 0 };
 /* Here, the first member of the struct must be a scalar to avoid a
    warning on -Wmissing-braces with GCC < 4.8.3 
@@ -134,6 +135,7 @@ void get_rds_group(int *buffer) {
             if(ps_state >= 4) ps_state = 0;
         } else { // state == 5
             blocks[1] = 0x2400 | rt_state;
+            blocks[1] |= (rds_params.rt_toggle << 4); //Radio Text A/B flag
             blocks[2] = rds_params.rt[rt_state*4+0]<<8 | rds_params.rt[rt_state*4+1];
             blocks[3] = rds_params.rt[rt_state*4+2]<<8 | rds_params.rt[rt_state*4+3];
             rt_state++;
@@ -241,6 +243,7 @@ void set_rds_rt(char *rt) {
     for(int i=0; i<64; i++) {
         if(rds_params.rt[i] == 0) rds_params.rt[i] = 32;
     }
+    rds_params.rt_toggle ^= 1; // Since we changed RT, change RT A/B flag so that radio receivers would know that we are transmitting a new line
 }
 
 void set_rds_ps(char *ps) {
