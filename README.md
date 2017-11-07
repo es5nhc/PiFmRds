@@ -59,7 +59,7 @@ To test stereophonic audio, you can try the file `stereo_44100.wav` provided.
 The more general syntax for running Pi-FM-RDS is as follows:
 
 ```
-pi_fm_rds [-freq freq] [-audio file] [-ppm ppm_error] [-pi pi_code] [-ps ps_text] [-rt rt_text]
+pi_fm_rds [-freq freq] [-audio file] [-ppm ppm_error] [-pi pi_code] [-ps ps_text] [-rt rt_text] [-pty pty]
 ```
 
 All arguments are optional:
@@ -67,6 +67,7 @@ All arguments are optional:
 * `-freq` specifies the carrier frequency (in MHz). Example: `-freq 107.9`.
 * `-audio` specifies an audio file to play as audio. The sample rate does not matter: Pi-FM-RDS will resample and filter it. If a stereo file is provided, Pi-FM-RDS will produce an FM-Stereo signal. Example: `-audio sound.wav`. The supported formats depend on `libsndfile`. This includes WAV and Ogg/Vorbis (among others) but not MP3. Specify `-` as the file name to read audio data on standard input (useful for piping audio into Pi-FM-RDS, see below).
 * `-pi` specifies the PI-code of the RDS broadcast. 4 hexadecimal digits. Example: `-pi FFFF`.
+* `-pi` specifies the Programme Type (PTY) code of the broadcast. Integer between 0 and 31. Example: `-pi 10` (Pop music in European system)
 * `-ps` specifies the station name (Program Service name, PS) of the RDS broadcast. Limit: 8 characters. Example: `-ps RASP-PI`.
 * `-rt` specifies the radiotext (RT) to be transmitted. Limit: 64 characters. Example: `-rt 'Hello, world!'`.
 * `-ctl` specifies a named pipe (FIFO) to use as a control channel to change PS and RT at run-time (see below).
@@ -99,9 +100,9 @@ sudo arecord -fS16_LE -r 44100 -Dplughw:1,0 -c 2 -  | sudo ./pi_fm_rds -audio -
 ```
 
 
-### Changing PS, RT and TA at run-time
+### Changing PS, PTY, RT and TA at run-time
 
-You can control PS, RT and TA (Traffic Announcement flag) at run-time using a named pipe (FIFO). For this run Pi-FM-RDS with the `-ctl` argument.
+You can control PS, PTY, RT and TA (Traffic Announcement flag) at run-time using a named pipe (FIFO). For this run Pi-FM-RDS with the `-ctl` argument.
 
 Example:
 
@@ -116,13 +117,14 @@ Then you can send “commands” to change PS, RT and TA:
 cat >rds_ctl
 PS MyText
 RT A text to be sent as radiotext
+PT 10
 TA ON
 PS OtherTxt
 TA OFF
 ...
 ```
 
-Every line must start with either `PS`, `RT` or `TA`, followed by one space character, and the desired value. Any other line format is silently ignored. `TA ON` switches the Traffic Announcement flag to *on*, any other value switches it to *off*.
+Every line must start with either `PS`, `PT`, `RT` or `TA`, followed by one space character, and the desired value. Any other line format is silently ignored. `TA ON` switches the Traffic Announcement flag to *on*, any other value switches it to *off*.
 
 
 ## Warning and Disclaimer
