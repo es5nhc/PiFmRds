@@ -35,6 +35,7 @@ struct {
     char ps[PS_LENGTH];
     char rt[RT_LENGTH];
     int rt_toggle;
+    int pty;
 } rds_params = { 0 };
 /* Here, the first member of the struct must be a scalar to avoid a
    warning on -Wmissing-braces with GCC < 4.8.3 
@@ -127,14 +128,14 @@ void get_rds_group(int *buffer) {
     // Generate block content
     if(! get_rds_ct_group(blocks)) { // CT (clock time) has priority on other group types
         if(state < 4) {
-            blocks[1] = 0x0400 | ps_state;
+            blocks[1] = 0x0400 | ps_state | (rds_params.pty << 5);
             if(rds_params.ta) blocks[1] |= 0x0010;
             blocks[2] = 0xCDCD;     // no AF
             blocks[3] = rds_params.ps[ps_state*2]<<8 | rds_params.ps[ps_state*2+1];
             ps_state++;
             if(ps_state >= 4) ps_state = 0;
         } else { // state == 5
-            blocks[1] = 0x2400 | rt_state;
+            blocks[1] = 0x2400 | rt_state | (rds_params.pty << 5);
             blocks[1] |= (rds_params.rt_toggle << 4); //Radio Text A/B flag
             blocks[2] = rds_params.rt[rt_state*4+0]<<8 | rds_params.rt[rt_state*4+1];
             blocks[3] = rds_params.rt[rt_state*4+2]<<8 | rds_params.rt[rt_state*4+3];
@@ -236,6 +237,10 @@ void get_rds_samples(float *buffer, int count) {
 
 void set_rds_pi(uint16_t pi_code) {
     rds_params.pi = pi_code;
+}
+
+void set_rds_pty(int pty) {
+    rds_params.pty = pty;
 }
 
 void set_rds_rt(char *rt) {

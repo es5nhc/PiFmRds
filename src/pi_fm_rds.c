@@ -451,7 +451,7 @@ map_peripheral(uint32_t base, uint32_t len)
 #define DATA_SIZE 5000
 
 
-int tx(uint32_t carrier_freq, uint32_t divider, char *audio_file, uint16_t pi, char *ps, char *rt, float ppm, char *control_pipe) {
+int tx(uint32_t carrier_freq, uint32_t divider, char *audio_file, uint16_t pi, char *ps, char *rt, int pty, float ppm, char *control_pipe) {
     // Catch all signals possible - it is vital we kill the DMA engine
     // on process exit!
     for (int i = 0; i < 64; i++) {
@@ -637,15 +637,16 @@ int tx(uint32_t carrier_freq, uint32_t divider, char *audio_file, uint16_t pi, c
     char myps[9] = {0};
     set_rds_pi(pi);
     set_rds_rt(rt);
+    set_rds_pty(pty);
     uint16_t count = 0;
     uint16_t count2 = 0;
     int varying_ps = 0;
     
     if(ps) {
         set_rds_ps(ps);
-        printf("PI: %04X, PS: \"%s\".\n", pi, ps);
+        printf("PI: %04X, PTY: %i, PS: \"%s\".\n", pi, pty, ps);
     } else {
-        printf("PI: %04X, PS: <Varying>.\n", pi);
+        printf("PI: %04X, PTY: %i, PS: <Varying>.\n", pi, pty);
         varying_ps = 1;
     }
     printf("RT: \"%s\"\n", rt);
@@ -753,6 +754,7 @@ int main(int argc, char **argv) {
     uint32_t carrier_freq = 107900000;
     char *ps = NULL;
     char *rt = "PiFmRds: live FM-RDS transmission from the RaspberryPi";
+    int pty = 0;
     uint16_t pi = 0x1234;
     uint32_t mash = -1;
     float ppm = 0;
@@ -782,6 +784,9 @@ int main(int argc, char **argv) {
         } else if(strcmp("-rt", arg)==0 && param != NULL) {
             i++;
             rt = param;
+        } else if (strcmp("-pty", arg) == 0 && param != NULL) {
+            i++;
+            pty = atoi(param);
         } else if(strcmp("-ppm", arg)==0 && param != NULL) {
             i++;
             ppm = atof(param);
@@ -794,7 +799,7 @@ int main(int argc, char **argv) {
         } else {
             fatal("Unrecognised argument: %s.\n"
             "Syntax: pi_fm_rds [-freq freq] [-audio file] [-ppm ppm_error] [-pi pi_code]\n"
-            "                  [-ps ps_text] [-rt rt_text] [-ctl control_pipe] [-mash]\n", arg);
+            "                  [-ps ps_text] [-pty pty] [-rt rt_text] [-ctl control_pipe] [-mash]\n", arg);
         }
     }
 
@@ -862,7 +867,7 @@ int main(int argc, char **argv) {
     {
        best_divider=0;  // if divider=0,  use MASH divider instead of PLL modulation
     }
-    int errcode = tx(carrier_freq, best_divider, audio_file, pi, ps, rt, ppm, control_pipe);
+    int errcode = tx(carrier_freq, best_divider, audio_file, pi, ps, rt, pty, ppm, control_pipe);
     
     terminate(errcode);
 }

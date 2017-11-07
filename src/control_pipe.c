@@ -30,6 +30,7 @@
 #include <stdio.h>
 #include <unistd.h>
 #include <errno.h>
+#include <stdlib.h>
 
 #include "rds.h"
 #include "control_pipe.h"
@@ -87,6 +88,12 @@ int poll_control_pipe() {
             printf("Set TA to ");
             if(ta) printf("ON\n"); else printf("OFF\n");
             return CONTROL_PIPE_TA_SET;
+        }
+        if (res[0] == 'P' && res[1] == 'T') {
+            arg[2] = 0;
+            int pty = atoi(arg);
+            set_rds_pty(pty);
+            printf("Set PTY to %s\n", arg);
         }
     }
     
