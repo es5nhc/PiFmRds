@@ -111,7 +111,7 @@ mkfifo rds_ctl
 sudo ./pi_fm_rds -ctl rds_ctl
 ```
 
-Then you can send “commands” to change PS, RT and TA:
+Then you can send “commands” to change PS, PTY(command: PT), RT and TA:
 
 ```
 cat >rds_ctl
